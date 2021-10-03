@@ -6,7 +6,12 @@ namespace NoesisMonogame
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Start Game ...");
+            
+            using var game = new Game1();
+            game.Run();
+            
+            Console.WriteLine("Exit Game ...");
         }
     }
 }
