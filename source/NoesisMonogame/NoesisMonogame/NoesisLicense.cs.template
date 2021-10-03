@@ -1,0 +1,8 @@
+namespace NoesisMonogame
+{
+    public static class NoesisLicense
+    {
+        public static string Name = new string("<add your name here>");
+        public static string Key = new string("<add your key here>");
+    }
+}
