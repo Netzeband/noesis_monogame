@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
 
 namespace NoesisMonogame
 {
@@ -11,6 +11,10 @@ namespace NoesisMonogame
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Noesis.View _guiView;
+        private MouseState _lastMouseState;
+        private bool _wasScrolledByMouse;
+        private readonly Dictionary<Noesis.MouseButton, TimeSpan> _lastMouseClickTime = new Dictionary<Noesis.MouseButton, TimeSpan>();
+        private readonly TimeSpan _doubleClickInterval = TimeSpan.FromMilliseconds(250);
 
         public Game1()
         {
@@ -18,6 +22,7 @@ namespace NoesisMonogame
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
             Content.RootDirectory = "Data";
             IsMouseVisible = true;
+            _wasScrolledByMouse = false;
         }
 
         private static void LogGUIMessage(Noesis.LogLevel level, string channel, string message)
@@ -105,13 +110,99 @@ namespace NoesisMonogame
             }
             
             // update your game state here ...
-            
-            // ToDo: Add mouse events for GUI here ...
-            // ToDo: Add keyboard events for GUI here ...
+
+            if (IsActive)
+            {
+                var mouseState = Mouse.GetState();
+
+                if (_wasScrolledByMouse || (_lastMouseState.X != mouseState.X) || (_lastMouseState.Y != mouseState.Y))
+                {
+                    _guiView.MouseMove(mouseState.X, mouseState.Y);
+                    _wasScrolledByMouse = false;
+                }
+
+                if (_lastMouseState.ScrollWheelValue != mouseState.ScrollWheelValue)
+                {
+                    // ToDo: Only consider mouse wheel, when we are over a control element
+                    _guiView.MouseWheel(
+                        mouseState.X,
+                        mouseState.Y,
+                        mouseState.ScrollWheelValue - _lastMouseState.ScrollWheelValue
+                    );
+                    _wasScrolledByMouse = true;
+                }
+
+                ProcessMouseButton(
+                    mouseState.X, 
+                    mouseState.Y, 
+                    Noesis.MouseButton.Left,  
+                    mouseState.LeftButton,  
+                    _lastMouseState.LeftButton, gameTime
+                    );
+                ProcessMouseButton(
+                    mouseState.X, 
+                    mouseState.Y, 
+                    Noesis.MouseButton.Right,  
+                    mouseState.LeftButton,  
+                    _lastMouseState.LeftButton, gameTime
+                    );
+                ProcessMouseButton(
+                    mouseState.X, 
+                    mouseState.Y, 
+                    Noesis.MouseButton.Middle,  
+                    mouseState.LeftButton,  
+                    _lastMouseState.LeftButton, gameTime
+                    );
+                
+                _lastMouseState = mouseState;
+                
+                // ToDo: Add keyboard events for GUI here ...
+            }
             
             _guiView.Update(gameTime.TotalGameTime.TotalSeconds);
             base.Update(gameTime);
         }
+
+        
+        private void ProcessMouseButton(int x, int y, Noesis.MouseButton buttonType, ButtonState state, ButtonState lastState, GameTime gameTime)
+        {
+            if (state == lastState) return;
+
+            if (state == ButtonState.Pressed)
+            {
+                if (RegisterAndCheckDoubleClick(buttonType, gameTime))
+                {
+                    _guiView.MouseDoubleClick(x, y, buttonType);
+                }
+                else
+                {
+                    _guiView.MouseButtonDown(x, y, buttonType);
+                }
+            }
+            else if (state == ButtonState.Released)
+            {
+                _guiView.MouseButtonUp(x, y, buttonType);
+            }
+        }
+
+
+        private bool RegisterAndCheckDoubleClick(Noesis.MouseButton buttonType, GameTime gameTime)
+        {
+            if (_lastMouseClickTime.TryGetValue(buttonType, out var lastClickTime))
+            {
+                var currentTime = gameTime.TotalGameTime;
+
+                if (currentTime - lastClickTime < _doubleClickInterval)
+                {
+                    _lastMouseClickTime.Remove(buttonType);
+                    return true;
+                }
+                
+                _lastMouseClickTime.Add(buttonType, currentTime);
+            }
+            return false;
+        }
+        
 
         protected override void Draw(GameTime gameTime)
         {
