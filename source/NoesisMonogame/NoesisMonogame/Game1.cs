@@ -43,10 +43,6 @@ namespace NoesisMonogame
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            var directXDevice = (SharpDX.Direct3D11.Device) GraphicsDevice.Handle;
-            var deviceContext = directXDevice.ImmediateContext;
-            var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
-
             NoesisApp.Application.SetThemeProviders();
             Noesis.GUI.LoadApplicationResources("Theme/NoesisTheme.DarkBlue.xaml");
 
@@ -76,7 +72,17 @@ namespace NoesisMonogame
             
             _guiView = Noesis.GUI.CreateView(xaml);
             RefreshGUISize();
-            _guiView.Renderer.Init(guiDevice);
+            
+            {
+                using var renderState = new D3X11RenderState(GraphicsDevice);
+                
+                _guiView.Renderer.Render();
+                var directXDevice = (SharpDX.Direct3D11.Device) GraphicsDevice.Handle;
+                var deviceContext = directXDevice.ImmediateContext;
+                var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
+                _guiView.Renderer.Init(guiDevice);
+            }
+
             _guiView.SetFlags(Noesis.RenderFlags.PPAA | Noesis.RenderFlags.LCD);
             
             // ToDo: register resize event
@@ -217,9 +223,12 @@ namespace NoesisMonogame
             }
 
             // draw your game state here ...
-            
-            _guiView.Renderer.Render();
-            
+
+            {
+                using var renderState = new D3X11RenderState(GraphicsDevice);
+                _guiView.Renderer.Render();
+            }
+
             base.Draw(gameTime);
         }
 
