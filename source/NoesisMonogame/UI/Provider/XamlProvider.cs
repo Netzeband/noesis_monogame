@@ -8,16 +8,14 @@ using Microsoft.Xna.Framework;
 
 namespace UI.Provider
 {
-    public class XamlProvider : LocalXamlProvider
+    public class XamlProvider : LocalXamlProvider, IReloadProvider
     {
-        private readonly string _rootPath;
-        private readonly Dictionary<Uri, int> _fileHashes = new Dictionary<Uri, int>();
-        private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(2);
-        private TimeSpan _lastCheck = TimeSpan.Zero;
+        private readonly IReloadProviderSettings _reloadProvider;
         
-        public XamlProvider(string rootPath) : base(rootPath)
+        public XamlProvider(string rootPath, IReloadProviderSettings reloadProvider) : base(rootPath)
         {
-            _rootPath = rootPath;
+            _reloadProvider = reloadProvider;
+            _reloadProvider.Setup(rootPath, RaiseXamlChanged);
         }
         
         public override Stream LoadXaml(Uri uri)
@@ -25,7 +23,6 @@ namespace UI.Provider
             try
             {
                 var stream = base.LoadXaml(uri);
-                _fileHashes[uri] = GetFileHash(uri);
                 return stream;
             }
             catch (DirectoryNotFoundException)
@@ -34,30 +31,7 @@ namespace UI.Provider
             }
         }
         
-        private int GetFileHash(Uri uri)
-        {
-            var filePath = System.IO.Path.Combine(_rootPath, uri.GetPath());
-            return File.GetLastWriteTime(filePath).GetHashCode();
-        }
-
-        public void Update(GameTime gameTime)
-        {
-#if  DEBUG
-            var currentTime = gameTime.TotalGameTime;
-
-            if (currentTime - _lastCheck > _checkInterval)
-            {
-                foreach (var item in _fileHashes)
-                {
-                    if (item.Value != GetFileHash(item.Key))
-                    {
-                        RaiseXamlChanged(item.Key);
-                    }
-                }
-                
-                _lastCheck = currentTime;
-            }
-#endif
-        }
+        
+        public void Update(GameTime gameTime) => _reloadProvider.Update(gameTime); 
     }
 }
