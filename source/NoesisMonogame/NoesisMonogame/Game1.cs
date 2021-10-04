@@ -188,18 +188,20 @@ namespace NoesisMonogame
 
         private bool RegisterAndCheckDoubleClick(Noesis.MouseButton buttonType, GameTime gameTime)
         {
+            var currentTime = gameTime.TotalGameTime;
+
             if (_lastMouseClickTime.TryGetValue(buttonType, out var lastClickTime))
             {
-                var currentTime = gameTime.TotalGameTime;
 
                 if (currentTime - lastClickTime < _doubleClickInterval)
                 {
                     _lastMouseClickTime.Remove(buttonType);
                     return true;
                 }
-                
-                _lastMouseClickTime.Add(buttonType, currentTime);
             }
+            
+            _lastMouseClickTime[buttonType] = currentTime;
+            
             return false;
         }
         
