@@ -20,14 +20,17 @@ the Noesis GUI "Hello World" example from the original example can be executed b
 MonoGame application. This can be a starting point for a more productive integration as
 the integration from AtomicTorchStudio was for Noesis GUI 3. 
 
+In the more advanced version the following features are implemented:
+* Loading XAML-, font- and texture-files from local disk (`<binary-directory>/Data/UI`)
+* Hot reloading of XAML-files, if they have changed
+
 The following things are missing:
 
 * Window Resize is not detected and not passed through Noesis GUI
 * Mouse double click detection has not been tested
 * Mouse wheel event is passed through Noesis GUI regardless if the mouse is over a control element or not
 * Keyboard events are not passed through Noesis GUI
-* XAML-, theme-, font- and texture-files are not loaded from the file-system (the example XAML is hardcoded as string)
-* Therefore no hot reloading is implemented
+* Hot reloading for Font and Textures is missing
 * No event handling (from GUI to game) is implemented
 
 Some of those features might be found in an more advanced branch or fork of this project.
