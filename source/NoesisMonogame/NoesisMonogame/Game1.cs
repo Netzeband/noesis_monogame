@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 
 namespace NoesisMonogame
 {
@@ -47,34 +49,24 @@ namespace NoesisMonogame
             var deviceContext = directXDevice.ImmediateContext;
             var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
 
-            NoesisApp.Application.SetThemeProviders();
-            Noesis.GUI.LoadApplicationResources("Theme/NoesisTheme.DarkBlue.xaml");
+            var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
 
-            Noesis.Grid xaml = (Noesis.Grid)Noesis.GUI.ParseXaml(@"
-                <Grid xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint=""0,0"" EndPoint=""0,1"">
-                            <GradientStop Offset=""0"" Color=""#FF123F61""/>
-                            <GradientStop Offset=""0.6"" Color=""#FF0E4B79""/>
-                            <GradientStop Offset=""0.7"" Color=""#FF106097""/>
-                        </LinearGradientBrush>
-                    </Grid.Background>
-                    <Viewbox>
-                        <StackPanel Margin=""50"">
-                            <Button Content=""Hello World!"" Margin=""0,30,0,0""/>
-                            <Rectangle Height=""5"" Margin=""-10,20,-10,0"">
-                                <Rectangle.Fill>
-                                    <RadialGradientBrush>
-                                        <GradientStop Offset=""0"" Color=""#40000000""/>
-                                        <GradientStop Offset=""1"" Color=""#00000000""/>
-                                    </RadialGradientBrush>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </StackPanel>
-                    </Viewbox>
-                </Grid>");
+            NoesisApp.Application.SetThemeProviders(
+                xamlProvider: new UI.Provider.XamlProvider(rootPath),
+                fontProvider: new UI.Provider.FontProvider(rootPath),
+                textureProvider: new NoesisApp.LocalTextureProvider(rootPath)
+                );
+            Noesis.GUI.LoadApplicationResources("Theme/NoesisTheme.DarkBlue.xaml");
             
-            _guiView = Noesis.GUI.CreateView(xaml);
+            var rootXaml = "Test.xaml";
+
+            var rootElement = Noesis.GUI.LoadXaml(rootXaml) as Noesis.FrameworkElement;
+            if (rootElement == null)
+            {
+                throw new FileNotFoundException($"Cannot find file '{rootXaml}' on path '{rootPath}'.");
+            }
+            
+            _guiView = Noesis.GUI.CreateView(rootElement);
             RefreshGUISize();
             _guiView.Renderer.Init(guiDevice);
             _guiView.SetFlags(Noesis.RenderFlags.PPAA | Noesis.RenderFlags.LCD);

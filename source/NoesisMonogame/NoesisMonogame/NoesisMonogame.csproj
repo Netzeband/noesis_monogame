@@ -13,7 +13,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data" />
+      <ProjectReference Include="..\UI\UI.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Data\UI\**\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
