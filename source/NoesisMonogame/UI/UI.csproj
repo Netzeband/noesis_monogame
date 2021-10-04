@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net5.0-windows</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
       <PackageReference Include="Noesis.App" Version="3.1.1" />
       <PackageReference Include="Noesis.GUI" Version="3.1.1" />
     </ItemGroup>

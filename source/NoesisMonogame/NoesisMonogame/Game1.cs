@@ -17,6 +17,7 @@ namespace NoesisMonogame
         private bool _wasScrolledByMouse;
         private readonly Dictionary<Noesis.MouseButton, TimeSpan> _lastMouseClickTime = new Dictionary<Noesis.MouseButton, TimeSpan>();
         private readonly TimeSpan _doubleClickInterval = TimeSpan.FromMilliseconds(250);
+        private UI.Provider.XamlProvider _xamlProvider; 
 
         public Game1()
         {
@@ -51,8 +52,9 @@ namespace NoesisMonogame
 
             var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
 
+            _xamlProvider = new UI.Provider.XamlProvider(rootPath);
             NoesisApp.Application.SetThemeProviders(
-                xamlProvider: new UI.Provider.XamlProvider(rootPath),
+                xamlProvider: _xamlProvider,
                 fontProvider: new UI.Provider.FontProvider(rootPath),
                 textureProvider: new NoesisApp.LocalTextureProvider(rootPath)
                 );
@@ -102,6 +104,8 @@ namespace NoesisMonogame
             }
             
             // update your game state here ...
+
+            _xamlProvider.Update(gameTime);
 
             if (IsActive)
             {
