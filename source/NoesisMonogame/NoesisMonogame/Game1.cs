@@ -45,11 +45,7 @@ namespace NoesisMonogame
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            var directXDevice = (SharpDX.Direct3D11.Device) GraphicsDevice.Handle;
-            var deviceContext = directXDevice.ImmediateContext;
-            var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
-
+            
             var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
 
             var xamlProvider = new UI.Provider.XamlProvider(rootPath, new UI.Provider.ReloadProvider());
@@ -72,7 +68,17 @@ namespace NoesisMonogame
             
             _guiView = Noesis.GUI.CreateView(rootElement);
             RefreshGUISize();
-            _guiView.Renderer.Init(guiDevice);
+            
+            {
+                using var renderState = new D3X11RenderState(GraphicsDevice);
+                
+                _guiView.Renderer.Render();
+                var directXDevice = (SharpDX.Direct3D11.Device) GraphicsDevice.Handle;
+                var deviceContext = directXDevice.ImmediateContext;
+                var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
+                _guiView.Renderer.Init(guiDevice);
+            }
+
             _guiView.SetFlags(Noesis.RenderFlags.PPAA | Noesis.RenderFlags.LCD);
             
             // ToDo: register resize event
@@ -215,9 +221,12 @@ namespace NoesisMonogame
             }
 
             // draw your game state here ...
-            
-            _guiView.Renderer.Render();
-            
+
+            {
+                using var renderState = new D3X11RenderState(GraphicsDevice);
+                _guiView.Renderer.Render();
+            }
+
             base.Draw(gameTime);
         }
 
