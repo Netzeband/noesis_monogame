@@ -13,6 +13,9 @@ The credits for the re-used parts from the Noesis GUI 2 implementation still bel
 AtomicTorchStudio. This is especially the case for the mouse-button handling and the 
 save/restore code of the DirectX-device state. 
 
+**Note:** The integration from AtomicTorchStudio contains also a branch, which a Noesis GUI 3 integration into
+MonoGame 3.8 (see: https://github.com/AtomicTorchStudio/NoesisGUI.MonoGameWrapper/tree/3.0.12).
+
 ## Features
 
 **This is not an productive version for a Noesis GUI integration**. It simply shows, that 
