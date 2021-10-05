@@ -23,6 +23,9 @@ namespace NoesisMonogame
         {
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            _graphics.PreferredBackBufferWidth = 1024;
+            _graphics.PreferredBackBufferHeight = 840;
+            
             Content.RootDirectory = "Data";
             IsMouseVisible = true;
             _wasScrolledByMouse = false;
@@ -38,9 +41,10 @@ namespace NoesisMonogame
             Noesis.Log.SetLogCallback(LogGUIMessage);
             Noesis.GUI.Init();
             Noesis.GUI.SetLicense(NoesisLicense.Name, NoesisLicense.Key);
-            
+
             base.Initialize();
         }
+        
 
         protected override void LoadContent()
         {
