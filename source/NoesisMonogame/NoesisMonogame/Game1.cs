@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Game = Microsoft.Xna.Framework.Game;
 
 
 namespace NoesisMonogame
@@ -62,14 +63,7 @@ namespace NoesisMonogame
             _xamlProvider = xamlProvider;
             Noesis.GUI.LoadApplicationResources("Theme/NoesisTheme.DarkBlue.xaml");
             
-            var rootXaml = "Test.xaml";
-
-            var rootElement = Noesis.GUI.LoadXaml(rootXaml) as Noesis.FrameworkElement;
-            if (rootElement == null)
-            {
-                throw new FileNotFoundException($"Cannot find file '{rootXaml}' on path '{rootPath}'.");
-            }
-            
+            var rootElement = new Data.UI.Window(new Data.UI.ViewModel(Exit));
             _guiView = Noesis.GUI.CreateView(rootElement);
             RefreshGUISize();
             
@@ -109,11 +103,13 @@ namespace NoesisMonogame
 
         protected override void Update(GameTime gameTime)
         {
+            /*
             if ((GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed) ||
                 (Keyboard.GetState().IsKeyDown(Keys.Escape)) )
             {
                 Exit();
             }
+            */
             
             // update your game state here ...
 

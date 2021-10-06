@@ -1,0 +1,11 @@
+<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Data.UI"
+    >
+    <Grid>
+        <local:MainMenu x:Name="MainMenu" Grid.Row="1" Grid.Column="1" Visibility="Hidden"/>
+        <local:Game x:Name="Game" Grid.Row="1" Grid.Column="1" Visibility="Hidden"/>
+        <local:PauseMenu x:Name="PauseMenu" Grid.Row="1" Grid.Column="1" Visibility="Hidden"/>
+    </Grid>
+</UserControl>

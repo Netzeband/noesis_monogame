@@ -1,0 +1,22 @@
+<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+    xmlns:b="http://schemas.microsoft.com/xaml/behaviors"    
+    xmlns:local="clr-namespace:Data.UI"
+>
+    <b:Interaction.Triggers>
+        <ei:DataTrigger Binding="{Binding State}" Value="{x:Static local:States.Game}">
+            <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Visible}"/>
+        </ei:DataTrigger>
+        <ei:DataTrigger Binding="{Binding State}" Comparison="NotEqual" Value="{x:Static local:States.Game}">
+            <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Hidden}"/>
+        </ei:DataTrigger>
+        <ei:KeyTrigger Key="Esc" ActiveOnFocus="True">
+            <i:InvokeCommandAction Command="{Binding Pause}"/>
+        </ei:KeyTrigger>
+    </b:Interaction.Triggers>
+
+    <TextBlock>Press ESC to Pause.</TextBlock>
+</UserControl>
