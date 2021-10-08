@@ -7,10 +7,10 @@
     xmlns:local="clr-namespace:Data.UI"
 >
     <b:Interaction.Triggers>
-        <ei:DataTrigger Binding="{Binding State}" Value="{x:Static local:States.Menu}">
+        <ei:DataTrigger Binding="{Binding View}" Value="{x:Static local:Views.Menu}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Visible}"/>
         </ei:DataTrigger>
-        <ei:DataTrigger Binding="{Binding State}" Comparison="NotEqual" Value="{x:Static local:States.Menu}">
+        <ei:DataTrigger Binding="{Binding View}" Comparison="NotEqual" Value="{x:Static local:Views.Menu}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Hidden}"/>
         </ei:DataTrigger>
     </b:Interaction.Triggers>

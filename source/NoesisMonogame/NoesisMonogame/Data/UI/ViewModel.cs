@@ -1,77 +1,87 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows.Input;
-using Noesis;
+using Microsoft.Xna.Framework;
 using NoesisApp;
+using NoesisMonogame;
 
 namespace Data.UI
 {
     public class ViewModel : INotifyPropertyChanged
     {
-        public delegate void ExitFunc();
-
         public event PropertyChangedEventHandler PropertyChanged;
         public ICommand Start { get; }
         public ICommand Exit { get; }
-        public ICommand Pause { get; }
-        public ICommand Resume { get; }
-        public ICommand Stop { get; }
         
-        public States State
+        public Views View
         {
-            get => _state;
+            get => _view;
             private set
             {
-                if (_state != value)
+                if (_view != value)
                 {
-                    _state = value;
-                    RaisePropertyChanged(nameof(State));
+                    _view = value;
+                    RaisePropertyChanged(nameof(View));
                 }
             }
         }
 
-        private readonly ExitFunc _exitFunc;
-        private States _state = States.Menu;
+        private readonly GameModel _gameModel;
+        private Views _view = Views.Menu;
 
-        public ViewModel(ExitFunc exitFunc)
+        public ViewModel(GameModel gameModel)
         {
-            _exitFunc = exitFunc;
+            _gameModel = gameModel;
             
             Start = new DelegateCommand(OnStart);
             Exit = new DelegateCommand(OnExit);
-            Pause = new DelegateCommand(OnPause);
-            Resume = new DelegateCommand(OnResume);
-            Stop = new DelegateCommand(OnStop);
         }
 
         private void RaisePropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
+        public void Update(GameTime gameTime)
+        {
+            switch (_gameModel.State)
+            {
+                case GameModel.States.Setup:
+                {
+                    View = Views.Menu;
+                    break;
+                }
+                
+                case GameModel.States.Running:
+                {
+                    View = Views.Game;
+                    break;
+                }
+                
+                case GameModel.States.Pause:
+                {
+                    View = Views.Pause;
+                    break;
+                }
+
+                default:
+                {
+                    View = Views.None;
+                    break;
+                }
+            }
+        }
         
         private void OnStart(object parameter)
         {
-            State = States.Game;
+            _gameModel.Trigger(new GameModel.Start());
         }
 
         private void OnExit(object parameter)
         {
-            _exitFunc();
+            _gameModel.Trigger(new GameModel.Exit());
         }
         
-        private void OnPause(object parameter)
-        {
-            State = States.Pause;
-        }
-
-        private void OnResume(object parameter)
-        {
-            State = States.Game;
-        }
-        
-        private void OnStop(object parameter)
-        {
-            State = States.Menu;
-        }
     }
 }

@@ -1,8 +1,9 @@
 namespace Data.UI
 {
 
-    public enum States
+    public enum Views
     {
+        None,
         Menu,
         Game,
         Pause,

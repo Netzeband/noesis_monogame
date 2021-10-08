@@ -7,15 +7,12 @@
     xmlns:local="clr-namespace:Data.UI"
 >
     <b:Interaction.Triggers>
-        <ei:DataTrigger Binding="{Binding State}" Value="{x:Static local:States.Game}">
+        <ei:DataTrigger Binding="{Binding View}" Value="{x:Static local:Views.Game}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Visible}"/>
         </ei:DataTrigger>
-        <ei:DataTrigger Binding="{Binding State}" Comparison="NotEqual" Value="{x:Static local:States.Game}">
+        <ei:DataTrigger Binding="{Binding View}" Comparison="NotEqual" Value="{x:Static local:Views.Game}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Hidden}"/>
         </ei:DataTrigger>
-        <ei:KeyTrigger Key="Esc" ActiveOnFocus="True">
-            <i:InvokeCommandAction Command="{Binding Pause}"/>
-        </ei:KeyTrigger>
     </b:Interaction.Triggers>
 
     <TextBlock>Press ESC to Pause.</TextBlock>

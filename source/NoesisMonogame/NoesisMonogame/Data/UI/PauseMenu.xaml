@@ -7,18 +7,18 @@
     xmlns:local="clr-namespace:Data.UI"
 >
     <b:Interaction.Triggers>
-        <ei:DataTrigger Binding="{Binding State}" Value="{x:Static local:States.Pause}">
+        <ei:DataTrigger Binding="{Binding View}" Value="{x:Static local:Views.Pause}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Visible}"/>
         </ei:DataTrigger>
-        <ei:DataTrigger Binding="{Binding State}" Comparison="NotEqual" Value="{x:Static local:States.Pause}">
+        <ei:DataTrigger Binding="{Binding View}" Comparison="NotEqual" Value="{x:Static local:Views.Pause}">
             <b:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Hidden}"/>
         </ei:DataTrigger>
     </b:Interaction.Triggers>
     
     <Viewbox>
         <StackPanel Margin="50">
-            <Button Name="Resume" Content="Resume" Margin="0,30,0,0" Command="{Binding Resume}"/>
-            <Button Name="Main Menu" Content="Main Menu" Margin="0,30,0,0" Command="{Binding Stop}"/>
+            <Button Name="Resume" Content="Resume" Margin="0,30,0,0" Command="{Binding Start}"/>
+            <Button Name="Main Menu" Content="Main Menu" Margin="0,30,0,0" Command="{Binding Exit}"/>
         </StackPanel>
     </Viewbox>
 </UserControl>
