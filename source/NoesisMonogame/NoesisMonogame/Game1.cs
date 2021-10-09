@@ -34,6 +34,7 @@ namespace NoesisMonogame
     
     public class Game1 : Game
     {
+        private Texture2D _ballTexture;
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Noesis.View _guiView;
@@ -57,8 +58,10 @@ namespace NoesisMonogame
             Content.RootDirectory = "Data";
             IsMouseVisible = true;
             _wasScrolledByMouse = false;
-
-            _model = new GameModel();
+            
+            _model = new GameModel(
+                new Vector2(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
+                );
         }
 
         private static void LogGUIMessage(Noesis.LogLevel level, string channel, string message)
@@ -71,7 +74,7 @@ namespace NoesisMonogame
             Noesis.Log.SetLogCallback(LogGUIMessage);
             Noesis.GUI.Init();
             Noesis.GUI.SetLicense(NoesisLicense.Name, NoesisLicense.Key);
-
+            
             base.Initialize();
         }
         
@@ -79,6 +82,7 @@ namespace NoesisMonogame
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _ballTexture = Content.Load<Texture2D>("ball");
             
             var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
 
@@ -197,7 +201,7 @@ namespace NoesisMonogame
                 {
                     if (pressedKeys.Contains(key) && !_lastPressedKeys.ContainsKey(key))
                     {
-                        ProcessKeyPressed(key, gameTime.TotalGameTime);
+                        ProcessKeyPressed(key, gameTime.TotalGameTime, gameTime);
                     }
                     else if (!pressedKeys.Contains(key) && _lastPressedKeys.ContainsKey(key))
                     {
@@ -205,7 +209,7 @@ namespace NoesisMonogame
                     }
                     else if ((gameTime.TotalGameTime - _lastPressedKeys[key]) > _keyRepeatInterval)
                     {
-                        ProcessKeyPressed(key, _lastPressedKeys[key] - _keyRepeatInterval);
+                        ProcessKeyPressed(key, gameTime.TotalGameTime, gameTime);
                     }
                 }
 
@@ -263,36 +267,76 @@ namespace NoesisMonogame
         }
 
 
-        private void ProcessKeyPressed(Keys key, TimeSpan totalGameTime)
+        private void ProcessKeyPressed(Keys key, TimeSpan keyProcessingTime, GameTime gameTime)
         {
-            _lastPressedKeys[key] = totalGameTime;
-            var noesisKey = ConvertKey(key);
-            if (noesisKey != Noesis.Key.None)
+            var processed = false;
+            
+            if (key is (Keys.Up or Keys.Down or Keys.Right or Keys.Left))
             {
-                _guiView.KeyDown(noesisKey);
+                if (_model.State == GameModel.States.Running)
+                {
+                    GameModel.Move.Direction direction = GameModel.Move.Direction.Up;
+                    switch (key)
+                    {
+                        case Keys.Up:
+                            direction = GameModel.Move.Direction.Up;
+                            break;
+                        case Keys.Down:
+                            direction = GameModel.Move.Direction.Down;
+                            break;
+                        case Keys.Right:
+                            direction = GameModel.Move.Direction.Right;
+                            break;
+                        case Keys.Left:
+                            direction = GameModel.Move.Direction.Left;
+                            break;
+                    }
+                    _model.Trigger(new GameModel.Move(direction, gameTime));
+                    processed = true;
+                    _lastPressedKeys[key] = keyProcessingTime - _keyRepeatInterval;
+                }
+            }
+
+            if (!processed)
+            {
+                var noesisKey = ConvertKey(key);
+                if (noesisKey != Noesis.Key.None)
+                {
+                    Console.WriteLine($"{key}: {noesisKey}");
+                    _guiView.KeyDown(noesisKey);
+                    processed = true;
+                    _lastPressedKeys[key] = keyProcessingTime;
+                }
             }
         }
 
         
         private void ProcessKeyReleased(Keys key)
         {
+            _lastPressedKeys.Remove(key);
+            var processed = false;
+            
             if (key == Keys.Escape)
             {
                 if (_model.State == GameModel.States.Running)
                 {
                     _model.Trigger(new GameModel.Pause());
+                    processed = true;
                 }
                 else if (_model.State == GameModel.States.Pause)
                 {
                     _model.Trigger(new GameModel.Start());
+                    processed = true;
                 }
             }
-            
-            _lastPressedKeys.Remove(key);
-            var noesisKey = ConvertKey(key);
-            if (noesisKey != Noesis.Key.None)
+
+            if (!processed)
             {
-                _guiView.KeyUp(noesisKey);
+                var noesisKey = ConvertKey(key);
+                if (noesisKey != Noesis.Key.None)
+                {
+                    _guiView.KeyUp(noesisKey);
+                }
             }
         }
 
@@ -471,7 +515,22 @@ namespace NoesisMonogame
                 _guiView.Renderer.RenderOffscreen();
             }
 
-            // draw your game state here ...
+            if (_model.State is (GameModel.States.Running or GameModel.States.Pause))
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.Draw(
+                    _ballTexture,
+                    _model.BallPosition,
+                    null,
+                    Color.White,
+                    0f,
+                    new Vector2(_ballTexture.Width / 2f, _ballTexture.Height / 2f),
+                    Vector2.One,
+                    SpriteEffects.None,
+                    0f
+                    );
+                _spriteBatch.End();
+            }
 
             {
                 using var renderState = new D3X11RenderState(GraphicsDevice);

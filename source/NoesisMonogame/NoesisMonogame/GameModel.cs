@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Xna.Framework;
 
 namespace NoesisMonogame
 {
@@ -16,18 +18,63 @@ namespace NoesisMonogame
         public interface IGameEvent {}
         
         public class Start : IGameEvent {}
+
         public class Exit : IGameEvent {}
         public class Pause : IGameEvent {}
 
+        public class Move : IGameEvent
+        {
+            public enum Direction
+            {
+                Up,
+                Down,
+                Right,
+                Left,
+            }
+
+            private readonly Vector2 _vector;
+            private readonly GameTime _gameTime;
+            
+            public Move(Direction direction, GameTime gameTime)
+            {
+                switch (direction)
+                {
+                    case Direction.Up:
+                        _vector = -Vector2.UnitY;
+                        break;
+                    case Direction.Down:
+                        _vector = Vector2.UnitY;
+                        break;
+                    case Direction.Right:
+                        _vector = Vector2.UnitX;
+                        break;
+                    case Direction.Left:
+                        _vector = -Vector2.UnitX;
+                        break;
+                }
+                _gameTime = gameTime;
+            }
+
+            public Vector2 GetMovementVector(float speed)
+            {
+                return _vector * speed * (float)_gameTime.ElapsedGameTime.TotalSeconds;
+            }
+        }
+
         public States State { get; private set; }
 
+        private Vector2 _ballPosition;
+        public Vector2 BallPosition => _ballPosition;
+
+        private Vector2 _screenSize;
+            
         private delegate States? StateEntryFunc(States lastState, States newState, IGameEvent gameEvent);
         private delegate States? StateFunc(States state, IGameEvent gameEvent);
 
-        private Dictionary<States, StateEntryFunc> _entryFunctions = new();
-        private Dictionary<States, Dictionary<Type, StateFunc>> _stateFunctions = new();
+        private readonly Dictionary<States, StateEntryFunc> _entryFunctions = new();
+        private readonly Dictionary<States, Dictionary<Type, StateFunc>> _stateFunctions = new();
 
-        public GameModel()
+        public GameModel(Vector2 screenSize)
         {
             // setup entry functions
             _entryFunctions[States.Running] = ResetGame;
@@ -41,6 +88,7 @@ namespace NoesisMonogame
             _stateFunctions[States.Running] = new Dictionary<Type, StateFunc>
             {
                 {typeof(Pause), Goto(States.Pause)},
+                {typeof(Move), OnMove}
             };
             _stateFunctions[States.Pause] = new Dictionary<Type, StateFunc>
             {
@@ -48,6 +96,11 @@ namespace NoesisMonogame
                 {typeof(Exit), Goto(States.Setup)},
             };
 
+            _screenSize = screenSize;
+            _ballPosition = new Vector2(
+                screenSize.X / 2,
+                screenSize.Y / 2
+                );
             State = States.Setup;
         }
 
@@ -97,6 +150,11 @@ namespace NoesisMonogame
         // entry functions
         private States? ResetGame(States lastState, States newState, IGameEvent gameEvent)
         {
+            if (lastState == States.Setup)
+            {
+                _ballPosition.X = _screenSize.X / 2;
+                _ballPosition.Y = _screenSize.Y / 2;
+            }
             return null;
         }
         
@@ -105,6 +163,33 @@ namespace NoesisMonogame
         private static StateFunc Goto(States newState)
         {
             return (_, _) => newState;
+        }
+
+
+        private States? OnMove(States state, IGameEvent gameEvent)
+        {
+            Debug.Assert(gameEvent is Move);
+            var e = (Move)gameEvent;
+
+            _ballPosition += e.GetMovementVector(200f);
+            if (_ballPosition.X < 0)
+            {
+                _ballPosition.X = 0;
+            }
+            if (_ballPosition.X > _screenSize.X)
+            {
+                _ballPosition.X = _screenSize.X;
+            }
+            if (_ballPosition.Y < 0)
+            {
+                _ballPosition.Y = 0;
+            }
+            if (_ballPosition.Y > _screenSize.Y)
+            {
+                _ballPosition.Y = _screenSize.Y;
+            }
+            
+            return null;
         }
         
     }
