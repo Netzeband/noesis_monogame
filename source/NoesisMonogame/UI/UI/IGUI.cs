@@ -11,6 +11,17 @@ namespace UI
         Input.IMouseInputHandler MouseInputHandler { get; }
         
         /// <summary>
+        /// The input handler for the keyboard.
+        /// </summary>
+        Input.IKeyboardInputHandler KeyboardInputHandler { get; }
+
+        /// <summary>
+        /// The input handler for the keyboard. This keyboard handler processed priority keys, which always
+        /// must be consumed before the game.
+        /// </summary>
+        Input.IKeyboardInputHandler PriorityKeyboardInputHandler { get; }
+        
+        /// <summary>
         /// Initializes the User Interface.
         /// </summary>
         void Init();

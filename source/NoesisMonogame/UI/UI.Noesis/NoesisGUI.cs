@@ -15,7 +15,9 @@ namespace UI.Noesis
         private readonly View.IViewFactory _viewFactory;
         private readonly string _theme;
         private readonly Renderer.IRenderDeviceFactory _renderDeviceFactory;
-        private readonly Input.INoesisMouseInputHandler _mouseInputHandler;
+        private readonly Input.INoesisMouseInputHandler _mouseInputHandler = new Input.NullNoesisMouseInputHandler();
+        private readonly Input.INoesisKeyboardHandler _keyboardInputHandler = new Input.NullNoesisKeyboardInputHandler();
+        private readonly Input.INoesisKeyboardHandler _priorityKeyboardInputHandler = new Input.NullNoesisKeyboardInputHandler();
         
         private NoesisLib.View _guiView;
         private GraphicsDeviceManager _graphics;
@@ -23,6 +25,8 @@ namespace UI.Noesis
         private bool _isInitialized;
 
         public UI.Input.IMouseInputHandler MouseInputHandler => _mouseInputHandler;
+        public UI.Input.IKeyboardInputHandler KeyboardInputHandler => _keyboardInputHandler;
+        public UI.Input.IKeyboardInputHandler PriorityKeyboardInputHandler => _priorityKeyboardInputHandler;
         
         public NoesisGUI(
             INoesisLicense license, 
@@ -30,7 +34,9 @@ namespace UI.Noesis
             Provider.IProviderManager providerManager,
             View.IViewFactory viewFactory,
             Renderer.IRenderDeviceFactory renderDeviceFactory,
-            Input.INoesisMouseInputHandler mouseInputHandler,
+            Input.INoesisMouseInputHandler mouseInputHandler = null,
+            Input.INoesisKeyboardHandler keyboardInputHandler = null,
+            Input.INoesisKeyboardHandler priorityKeyboardInputHandler = null,
             string theme = ""
             )
         {
@@ -39,7 +45,22 @@ namespace UI.Noesis
             _providerManager = providerManager;
             _viewFactory = viewFactory;
             _renderDeviceFactory = renderDeviceFactory;
-            _mouseInputHandler = mouseInputHandler;
+            
+            if (mouseInputHandler != null)
+            {
+                _mouseInputHandler = mouseInputHandler;
+            }
+
+            if (keyboardInputHandler != null)
+            {
+                _keyboardInputHandler = keyboardInputHandler;
+            }
+
+            if (priorityKeyboardInputHandler != null)
+            {
+                _priorityKeyboardInputHandler = priorityKeyboardInputHandler;                
+            }
+            
             _theme = theme;
 
             Debug.Assert(_license != null);
@@ -48,6 +69,8 @@ namespace UI.Noesis
             Debug.Assert(_viewFactory != null);
             Debug.Assert(_renderDeviceFactory != null);
             Debug.Assert(_mouseInputHandler != null);
+            Debug.Assert(_keyboardInputHandler != null);
+            Debug.Assert(_priorityKeyboardInputHandler != null);
             Debug.Assert(_theme != null);
             
             _isInitialized = false;
@@ -85,7 +108,6 @@ namespace UI.Noesis
             _renderStateStorage = _renderDeviceFactory.CreateRenderStateStorage(_graphics.GraphicsDevice);
             {
                 using var renderState = _renderStateStorage.Save();
-                //using var renderState = new D3X11RenderState(graphicsDevice);
                 
                 _guiView.Renderer.Render();
                 _guiView.Renderer.Init(_renderDeviceFactory.CreateNoesisRenderDevice(_graphics.GraphicsDevice));
@@ -93,6 +115,8 @@ namespace UI.Noesis
             }
 
             _mouseInputHandler.Init(_guiView);
+            _keyboardInputHandler.Init(_guiView);
+            _priorityKeyboardInputHandler.Init(_guiView);
             
             // ToDo: register resize event
         }
@@ -108,6 +132,8 @@ namespace UI.Noesis
         public void Unload()
         {
             _mouseInputHandler.UnInit();
+            _keyboardInputHandler.UnInit();
+            _priorityKeyboardInputHandler.UnInit();
              
             if (_guiView != null)
             {
@@ -135,17 +161,23 @@ namespace UI.Noesis
 
         public void PreRender()
         {
-            using var renderState = _renderStateStorage.Save();
+            if (IsLoaded())
+            {
+                using var renderState = _renderStateStorage.Save();
             
-            _guiView.Renderer.UpdateRenderTree();
-            _guiView.Renderer.RenderOffscreen();
+                _guiView.Renderer.UpdateRenderTree();
+                _guiView.Renderer.RenderOffscreen();
+            }
         }
 
         public void Render()
         {
-            using var renderState = _renderStateStorage.Save();
+            if (IsLoaded())
+            {
+                using var renderState = _renderStateStorage.Save();
 
-            _guiView.Renderer.Render();
+                _guiView.Renderer.Render();
+            }
         }
     }
 }
