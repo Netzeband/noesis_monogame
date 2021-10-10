@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>net5.0-windows</TargetFramework>
         <AssemblyName>UI.Noesis</AssemblyName>
-        <RootNamespace>UI</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

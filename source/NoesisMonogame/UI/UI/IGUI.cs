@@ -6,6 +6,11 @@ namespace UI
     public interface IGUI
     {
         /// <summary>
+        /// The input handler for the mouse.
+        /// </summary>
+        Input.IMouseInputHandler MouseInputHandler { get; }
+        
+        /// <summary>
         /// Initializes the User Interface.
         /// </summary>
         void Init();

@@ -15,11 +15,14 @@ namespace UI.Noesis
         private readonly View.IViewFactory _viewFactory;
         private readonly string _theme;
         private readonly Renderer.IRenderDeviceFactory _renderDeviceFactory;
+        private readonly Input.INoesisMouseInputHandler _mouseInputHandler;
         
         private NoesisLib.View _guiView;
         private GraphicsDeviceManager _graphics;
         private Renderer.IRenderStateStorage _renderStateStorage;
         private bool _isInitialized;
+
+        public UI.Input.IMouseInputHandler MouseInputHandler => _mouseInputHandler;
         
         public NoesisGUI(
             INoesisLicense license, 
@@ -27,6 +30,7 @@ namespace UI.Noesis
             Provider.IProviderManager providerManager,
             View.IViewFactory viewFactory,
             Renderer.IRenderDeviceFactory renderDeviceFactory,
+            Input.INoesisMouseInputHandler mouseInputHandler,
             string theme = ""
             )
         {
@@ -35,6 +39,7 @@ namespace UI.Noesis
             _providerManager = providerManager;
             _viewFactory = viewFactory;
             _renderDeviceFactory = renderDeviceFactory;
+            _mouseInputHandler = mouseInputHandler;
             _theme = theme;
 
             Debug.Assert(_license != null);
@@ -42,6 +47,7 @@ namespace UI.Noesis
             Debug.Assert(_providerManager != null);
             Debug.Assert(_viewFactory != null);
             Debug.Assert(_renderDeviceFactory != null);
+            Debug.Assert(_mouseInputHandler != null);
             Debug.Assert(_theme != null);
             
             _isInitialized = false;
@@ -86,6 +92,8 @@ namespace UI.Noesis
                 _guiView.SetFlags(NoesisLib.RenderFlags.PPAA | NoesisLib.RenderFlags.LCD);
             }
 
+            _mouseInputHandler.Init(_guiView);
+            
             // ToDo: register resize event
         }
         
@@ -99,6 +107,8 @@ namespace UI.Noesis
 
         public void Unload()
         {
+            _mouseInputHandler.UnInit();
+             
             if (_guiView != null)
             {
                 // ToDo: unsubscribe events (like resize)...

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using NoesisApp;
 
 
 namespace NoesisMonogame
@@ -70,6 +68,7 @@ namespace NoesisMonogame
                 providerManager,
                 new Data.UI.WindowFactory(_viewModel),
                 new UI.Noesis.DirectX.Renderer.RenderDeviceFactory(),
+                new UI.Noesis.Input.NoesisMouseInputHandler(),
                 theme: "Theme/NoesisTheme.DarkBlue.xaml"
                 );
             
@@ -105,62 +104,30 @@ namespace NoesisMonogame
 
         protected override void Update(GameTime gameTime)
         {
-            /*
-            if ((GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed) ||
-                (Keyboard.GetState().IsKeyDown(Keys.Escape)) )
-            {
-                Exit();
-            }
-            */
-            
             // update your game state here ...
 
-            /*
             if (IsActive)
             {
                 var mouseState = Mouse.GetState();
 
-                if (_wasScrolledByMouse || (_lastMouseState.X != mouseState.X) || (_lastMouseState.Y != mouseState.Y))
+                _gui.MouseInputHandler.PrepareProcessing();
+                _gui.MouseInputHandler.ProcessMouseMove(mouseState.X, mouseState.Y);
+                _gui.MouseInputHandler.ProcessMouseWheel(mouseState.ScrollWheelValue);
+                if (mouseState.LeftButton == ButtonState.Pressed)
                 {
-                    _guiView.MouseMove(mouseState.X, mouseState.Y);
-                    _wasScrolledByMouse = false;
+                    _gui.MouseInputHandler.ProcessButtonPressed(UI.Input.MouseButtons.Left);
                 }
-
-                if (_lastMouseState.ScrollWheelValue != mouseState.ScrollWheelValue)
+                if (mouseState.RightButton == ButtonState.Pressed)
                 {
-                    // ToDo: Only consider mouse wheel, when we are over a control element
-                    _guiView.MouseWheel(
-                        mouseState.X,
-                        mouseState.Y,
-                        mouseState.ScrollWheelValue - _lastMouseState.ScrollWheelValue
-                    );
-                    _wasScrolledByMouse = true;
+                    _gui.MouseInputHandler.ProcessButtonPressed(UI.Input.MouseButtons.Right);
                 }
-
-                ProcessMouseButton(
-                    mouseState.X, 
-                    mouseState.Y, 
-                    Noesis.MouseButton.Left,  
-                    mouseState.LeftButton,  
-                    _lastMouseState.LeftButton, gameTime
-                    );
-                ProcessMouseButton(
-                    mouseState.X, 
-                    mouseState.Y, 
-                    Noesis.MouseButton.Right,  
-                    mouseState.LeftButton,  
-                    _lastMouseState.LeftButton, gameTime
-                    );
-                ProcessMouseButton(
-                    mouseState.X, 
-                    mouseState.Y, 
-                    Noesis.MouseButton.Middle,  
-                    mouseState.LeftButton,  
-                    _lastMouseState.LeftButton, gameTime
-                    );
+                if (mouseState.MiddleButton == ButtonState.Pressed)
+                {
+                    _gui.MouseInputHandler.ProcessButtonPressed(UI.Input.MouseButtons.Middle);
+                }
+                _gui.MouseInputHandler.Update(gameTime.TotalGameTime);
                 
-                _lastMouseState = mouseState;
-                
+                /*
                 // Consider Keyboard events 
                 var pressedKeys = Keyboard.GetState().GetPressedKeys();
                 
@@ -179,6 +146,7 @@ namespace NoesisMonogame
                         ProcessKeyPressed(key, gameTime.TotalGameTime, gameTime);
                     }
                 }
+                */
 
             }
 
@@ -186,7 +154,6 @@ namespace NoesisMonogame
             {
                 Exit();
             }
-            */
 
             _gui.Update(gameTime.TotalGameTime);
             _viewModel.Update(gameTime);
@@ -194,49 +161,8 @@ namespace NoesisMonogame
             base.Update(gameTime);
         }
 
+        
         /*
-        private void ProcessMouseButton(int x, int y, Noesis.MouseButton buttonType, ButtonState state, ButtonState lastState, GameTime gameTime)
-        {
-            if (state == lastState) return;
-
-            if (state == ButtonState.Pressed)
-            {
-                if (RegisterAndCheckDoubleClick(buttonType, gameTime))
-                {
-                    _guiView.MouseDoubleClick(x, y, buttonType);
-                }
-                else
-                {
-                    _guiView.MouseButtonDown(x, y, buttonType);
-                }
-            }
-            else if (state == ButtonState.Released)
-            {
-                _guiView.MouseButtonUp(x, y, buttonType);
-            }
-        }
-
-
-        private bool RegisterAndCheckDoubleClick(Noesis.MouseButton buttonType, GameTime gameTime)
-        {
-            var currentTime = gameTime.TotalGameTime;
-
-            if (_lastMouseClickTime.TryGetValue(buttonType, out var lastClickTime))
-            {
-
-                if (currentTime - lastClickTime < _doubleClickInterval)
-                {
-                    _lastMouseClickTime.Remove(buttonType);
-                    return true;
-                }
-            }
-            
-            _lastMouseClickTime[buttonType] = currentTime;
-            
-            return false;
-        }
-
-
         private void ProcessKeyPressed(Keys key, TimeSpan keyProcessingTime, GameTime gameTime)
         {
             var processed = false;
