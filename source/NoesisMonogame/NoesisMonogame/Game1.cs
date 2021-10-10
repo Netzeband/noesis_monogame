@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Color = Microsoft.Xna.Framework.Color;
-using Game = Microsoft.Xna.Framework.Game;
-using Keyboard = Microsoft.Xna.Framework.Input.Keyboard;
-using Mouse = Microsoft.Xna.Framework.Input.Mouse;
-using Path = System.IO.Path;
+using NoesisApp;
 
 
 namespace NoesisMonogame
@@ -34,46 +31,57 @@ namespace NoesisMonogame
     
     public class Game1 : Game
     {
+        private readonly UI.IGUI _gui;
+        
         private Texture2D _ballTexture;
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Noesis.View _guiView;
         private readonly GameModel _model;
         private Data.UI.ViewModel _viewModel;
         private MouseState _lastMouseState;
         private bool _wasScrolledByMouse;
         private readonly Dictionary<Noesis.MouseButton, TimeSpan> _lastMouseClickTime = new();
         private readonly TimeSpan _doubleClickInterval = TimeSpan.FromMilliseconds(250);
-        private UI.Provider.IReloadProvider _xamlProvider;
         private readonly Dictionary<Keys, TimeSpan> _lastPressedKeys = new(KeysComparer.Instance);
         private readonly TimeSpan _keyRepeatInterval = TimeSpan.FromMilliseconds(250);
-
+        
+        
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
             _graphics.PreferredBackBufferWidth = 1024;
             _graphics.PreferredBackBufferHeight = 840;
+
+            _model = new GameModel(
+                new Vector2(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
+            );
+            _viewModel = new Data.UI.ViewModel(_model);
+
+            var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
+            var providerManager = new UI.Noesis.Provider.ProviderManager(
+                new UI.Noesis.Provider.XamlProvider(rootPath, new UI.Noesis.Provider.ReloadProvider()),
+                new UI.Noesis.Provider.FontProvider(rootPath),
+                new UI.Noesis.Provider.TextureProvider(rootPath)
+                );
+            _gui = new UI.Noesis.NoesisGUI(
+                new NoesisLicense(),
+                new UI.Logging.ConsoleLogger(),
+                providerManager,
+                new Data.UI.WindowFactory(_viewModel),
+                new UI.Noesis.DirectX.Renderer.RenderDeviceFactory(),
+                theme: "Theme/NoesisTheme.DarkBlue.xaml"
+                );
             
             Content.RootDirectory = "Data";
             IsMouseVisible = true;
             _wasScrolledByMouse = false;
-            
-            _model = new GameModel(
-                new Vector2(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
-                );
         }
-
-        private static void LogGUIMessage(Noesis.LogLevel level, string channel, string message)
-        {
-            Console.WriteLine($"[{level}] {message}");
-        }
+        
         
         protected override void Initialize()
         {
-            Noesis.Log.SetLogCallback(LogGUIMessage);
-            Noesis.GUI.Init();
-            Noesis.GUI.SetLicense(NoesisLicense.Name, NoesisLicense.Key);
+            _gui.Init();
             
             base.Initialize();
         }
@@ -84,54 +92,14 @@ namespace NoesisMonogame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _ballTexture = Content.Load<Texture2D>("ball");
             
-            var rootPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "Data/UI"));
-
-            var xamlProvider = new UI.Provider.XamlProvider(rootPath, new UI.Provider.ReloadProvider());
-            var fontProvider = new UI.Provider.FontProvider(rootPath);
-            NoesisApp.Application.SetThemeProviders(
-                xamlProvider: xamlProvider,
-                fontProvider: fontProvider,
-                textureProvider: new NoesisApp.LocalTextureProvider(rootPath)
-                );
-            _xamlProvider = xamlProvider;
-            Noesis.GUI.LoadApplicationResources("Theme/NoesisTheme.DarkBlue.xaml");
-
-            _viewModel = new Data.UI.ViewModel(_model);
-            var rootElement = new Data.UI.Window(_viewModel);
-            _guiView = Noesis.GUI.CreateView(rootElement);
-            RefreshGUISize();
-            
-            {
-                using var renderState = new D3X11RenderState(GraphicsDevice);
-                
-                _guiView.Renderer.Render();
-                var directXDevice = (SharpDX.Direct3D11.Device) GraphicsDevice.Handle;
-                var deviceContext = directXDevice.ImmediateContext;
-                var guiDevice = new Noesis.RenderDeviceD3D11(deviceContext.NativePointer, sRGB: false);
-                _guiView.Renderer.Init(guiDevice);
-            }
-
-            _guiView.SetFlags(Noesis.RenderFlags.PPAA | Noesis.RenderFlags.LCD);
-            
-            // ToDo: register resize event
+            _gui.Load(_graphics);
         }
-
-        private void RefreshGUISize()
-        {
-            var viewport = GraphicsDevice.Viewport;
-            _guiView.SetSize((ushort)viewport.Width, (ushort)viewport.Height);
-        }
+        
         
         protected override void UnloadContent()
         {
-            if (_guiView != null)
-            {
-                // ToDo: unsubscribe events (like resize)...
-                
-                _guiView.Renderer.Shutdown();
-                _guiView = null;
-            }
-
+            _gui.Unload();
+            
             // unload content here if necessary ...
         }
 
@@ -147,8 +115,7 @@ namespace NoesisMonogame
             
             // update your game state here ...
 
-            _xamlProvider.Update(gameTime);
-
+            /*
             if (IsActive)
             {
                 var mouseState = Mouse.GetState();
@@ -219,12 +186,15 @@ namespace NoesisMonogame
             {
                 Exit();
             }
-            
+            */
+
+            _gui.Update(gameTime.TotalGameTime);
             _viewModel.Update(gameTime);
-            _guiView.Update(gameTime.TotalGameTime.TotalSeconds);
+            
             base.Update(gameTime);
         }
 
+        /*
         private void ProcessMouseButton(int x, int y, Noesis.MouseButton buttonType, ButtonState state, ButtonState lastState, GameTime gameTime)
         {
             if (state == lastState) return;
@@ -504,17 +474,13 @@ namespace NoesisMonogame
                 default: return Noesis.Key.None;
             }
         }
+        */
         
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            {
-                using var renderState = new D3X11RenderState(GraphicsDevice);
-                _guiView.Renderer.UpdateRenderTree();
-                _guiView.Renderer.RenderOffscreen();
-            }
-
+            _gui.PreRender();
+            
             if (_model.State is (GameModel.States.Running or GameModel.States.Pause))
             {
                 _spriteBatch.Begin();
@@ -532,11 +498,7 @@ namespace NoesisMonogame
                 _spriteBatch.End();
             }
 
-            {
-                using var renderState = new D3X11RenderState(GraphicsDevice);
-                _guiView.Renderer.Render();
-            }
-
+            _gui.Render();
             base.Draw(gameTime);
         }
 

@@ -1,11 +1,10 @@
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Noesis;
 
 
-namespace UI.Provider
+namespace UI.Noesis.Provider
 {
     public class ReloadProvider : IReloadProviderSettings
     {
@@ -21,10 +20,10 @@ namespace UI.Provider
             _triggerReload = triggerReload;
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(TimeSpan totalTime)
         {
 #if  DEBUG
-            var currentTime = gameTime.TotalGameTime;
+            var currentTime = totalTime;
 
             if ((currentTime - _lastCheck > _checkInterval) && (_triggerReload != null))
             {

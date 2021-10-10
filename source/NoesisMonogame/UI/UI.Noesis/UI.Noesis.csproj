@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0-windows</TargetFramework>
+        <AssemblyName>UI.Noesis</AssemblyName>
+        <RootNamespace>UI</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="ViewModel" />
+      <ProjectReference Include="..\UI\UI.csproj" />
     </ItemGroup>
 
 </Project>

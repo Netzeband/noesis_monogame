@@ -13,7 +13,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\UI\UI.csproj" />
+        <ProjectReference Include="..\UI\UI\UI.csproj" />
+        <ProjectReference Include="..\UI\UI.Noesis\UI.Noesis.csproj" />
+        <ProjectReference Include="..\UI\UI.Noesis.DirectX\UI.Noesis.DirectX.csproj" />
     </ItemGroup>
 
     <ItemGroup>

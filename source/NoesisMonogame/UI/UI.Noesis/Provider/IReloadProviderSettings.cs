@@ -1,6 +1,6 @@
 using System;
 
-namespace UI.Provider
+namespace UI.Noesis.Provider
 {
     public interface IReloadProviderSettings : IReloadProvider
     {
