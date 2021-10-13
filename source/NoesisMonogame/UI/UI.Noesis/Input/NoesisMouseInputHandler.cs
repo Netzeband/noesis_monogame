@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Xna.Framework;
 using NoesisLib = Noesis;
 
 
@@ -118,7 +119,7 @@ namespace UI.Noesis.Input
             return false;
         }
 
-        public void Update(TimeSpan totalTime)
+        public void Update(GameTime gameTime)
         {
             if ((_newX != _lastX) || (_newY != _lastY))
             {
@@ -135,7 +136,7 @@ namespace UI.Noesis.Input
 
             foreach (var state in _mouseButtonStates.Values)
             {
-                state.Update(_view, totalTime, _doubleClickTime, _newX, _newY);
+                state.Update(_view, gameTime.TotalGameTime, _doubleClickTime, _newX, _newY);
             }
         }
 

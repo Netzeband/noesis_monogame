@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Data.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Game = Microsoft.Xna.Framework.Game;
 
 
 namespace NoesisMonogame
@@ -35,13 +37,8 @@ namespace NoesisMonogame
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private readonly GameModel _model;
-        private Data.UI.ViewModel _viewModel;
-        private MouseState _lastMouseState;
-        private bool _wasScrolledByMouse;
-        private readonly Dictionary<Noesis.MouseButton, TimeSpan> _lastMouseClickTime = new();
-        private readonly TimeSpan _doubleClickInterval = TimeSpan.FromMilliseconds(250);
-        private readonly Dictionary<Keys, TimeSpan> _lastPressedKeys = new(KeysComparer.Instance);
-        private readonly TimeSpan _keyRepeatInterval = TimeSpan.FromMilliseconds(250);
+        private readonly ViewModel _viewModel;
+        private readonly GameInputHandler _inputHandler;
         
         
         public Game1()
@@ -73,10 +70,11 @@ namespace NoesisMonogame
                 new UI.Noesis.Input.NoesisKeyboardInputHandler(),
                 theme: "Theme/NoesisTheme.DarkBlue.xaml"
                 );
+
+            _inputHandler = new GameInputHandler(_model);
             
             Content.RootDirectory = "Data";
             IsMouseVisible = true;
-            _wasScrolledByMouse = false;
         }
         
         
@@ -127,16 +125,13 @@ namespace NoesisMonogame
                 {
                     _gui.MouseInputHandler.ProcessButtonPressed(UI.Input.MouseButtons.Middle);
                 }
-                _gui.MouseInputHandler.Update(gameTime.TotalGameTime);
+                _gui.MouseInputHandler.Update(gameTime);
                 
                 // Consider Keyboard events 
                 var pressedKeys = Keyboard.GetState().GetPressedKeys();
-                pressedKeys = _gui.PriorityKeyboardInputHandler.ProcessKeys(pressedKeys, gameTime.TotalGameTime);
-                if (pressedKeys.Length > 0)
-                {
-                    Console.WriteLine(pressedKeys);
-                }
-                _gui.KeyboardInputHandler.ProcessKeys(pressedKeys, gameTime.TotalGameTime);
+                pressedKeys = _gui.PriorityKeyboardInputHandler.ProcessKeys(pressedKeys, gameTime);
+                pressedKeys = _inputHandler.ProcessKeys(pressedKeys, gameTime);
+                _gui.KeyboardInputHandler.ProcessKeys(pressedKeys, gameTime);
 
             }
 
@@ -145,88 +140,12 @@ namespace NoesisMonogame
                 Exit();
             }
 
-            _gui.Update(gameTime.TotalGameTime);
             _viewModel.Update(gameTime);
+            _gui.Update(gameTime.TotalGameTime);
             
             base.Update(gameTime);
         }
 
-        
-        /*
-        private void ProcessKeyPressed(Keys key, TimeSpan keyProcessingTime, GameTime gameTime)
-        {
-            var processed = false;
-            
-            if (key is (Keys.Up or Keys.Down or Keys.Right or Keys.Left))
-            {
-                if (_model.State == GameModel.States.Running)
-                {
-                    GameModel.Move.Direction direction = GameModel.Move.Direction.Up;
-                    switch (key)
-                    {
-                        case Keys.Up:
-                            direction = GameModel.Move.Direction.Up;
-                            break;
-                        case Keys.Down:
-                            direction = GameModel.Move.Direction.Down;
-                            break;
-                        case Keys.Right:
-                            direction = GameModel.Move.Direction.Right;
-                            break;
-                        case Keys.Left:
-                            direction = GameModel.Move.Direction.Left;
-                            break;
-                    }
-                    _model.Trigger(new GameModel.Move(direction, gameTime));
-                    processed = true;
-                    _lastPressedKeys[key] = keyProcessingTime - _keyRepeatInterval;
-                }
-            }
-
-            if (!processed)
-            {
-                var noesisKey = ConvertKey(key);
-                if (noesisKey != Noesis.Key.None)
-                {
-                    Console.WriteLine($"{key}: {noesisKey}");
-                    _guiView.KeyDown(noesisKey);
-                    processed = true;
-                    _lastPressedKeys[key] = keyProcessingTime;
-                }
-            }
-        }
-
-        
-        private void ProcessKeyReleased(Keys key)
-        {
-            _lastPressedKeys.Remove(key);
-            var processed = false;
-            
-            if (key == Keys.Escape)
-            {
-                if (_model.State == GameModel.States.Running)
-                {
-                    _model.Trigger(new GameModel.Pause());
-                    processed = true;
-                }
-                else if (_model.State == GameModel.States.Pause)
-                {
-                    _model.Trigger(new GameModel.Start());
-                    processed = true;
-                }
-            }
-
-            if (!processed)
-            {
-                var noesisKey = ConvertKey(key);
-                if (noesisKey != Noesis.Key.None)
-                {
-                    _guiView.KeyUp(noesisKey);
-                }
-            }
-        }
-
-        */
         
         protected override void Draw(GameTime gameTime)
         {

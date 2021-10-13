@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using NoesisLib = Noesis;
 
@@ -23,7 +24,7 @@ namespace UI.Noesis.Input
             _view = null;
         }
 
-        public Keys[] ProcessKeys(Keys[] pressedKeys, TimeSpan totalTime)
+        public Keys[] ProcessKeys(Keys[] pressedKeys, GameTime gameTime)
         {
             var unconsumedKeys = new List<Keys>();
 
@@ -31,7 +32,7 @@ namespace UI.Noesis.Input
             {
                 if (pressedKeys.Contains(key) && !_pressedKeyTime.ContainsKey(key))
                 {
-                    ProcessKeyDown(key, totalTime, ref unconsumedKeys);
+                    ProcessKeyDown(key, gameTime, ref unconsumedKeys);
                 }
                 else if (!pressedKeys.Contains(key) && _pressedKeyTime.ContainsKey(key))
                 {
@@ -39,20 +40,20 @@ namespace UI.Noesis.Input
                 }
                 else
                 {
-                    ProcessKeyRepeat(key, totalTime);
+                    ProcessKeyRepeat(key, gameTime);
                 }
             }
             
             return unconsumedKeys.ToArray();
         }
         
-        private void ProcessKeyDown(Keys key, TimeSpan totalTime, ref List<Keys> unconsumedKeys)
+        private void ProcessKeyDown(Keys key, GameTime gameTime, ref List<Keys> unconsumedKeys)
         {
             var noesisKey = GetNoesisKey(key); 
 
             if (_view.KeyDown(noesisKey))
             {
-                _pressedKeyTime[key] = totalTime;
+                _pressedKeyTime[key] = gameTime.TotalGameTime;
             }
             else
             {
@@ -70,9 +71,9 @@ namespace UI.Noesis.Input
         }
         
         
-        private void ProcessKeyRepeat(Keys key, TimeSpan totalTime)
+        private void ProcessKeyRepeat(Keys key, GameTime gameTime)
         {
-            if (totalTime - _pressedKeyTime[key] > _keyRepeatTime)
+            if (gameTime.TotalGameTime - _pressedKeyTime[key] > _keyRepeatTime)
             {
                 var noesisKey = GetNoesisKey(key);
                 _view.KeyDown(noesisKey);

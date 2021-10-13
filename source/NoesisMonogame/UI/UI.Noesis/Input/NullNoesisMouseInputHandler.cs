@@ -1,4 +1,4 @@
-using System;
+using Microsoft.Xna.Framework;
 using NoesisLib = Noesis;
 
 
@@ -33,7 +33,7 @@ namespace UI.Noesis.Input
             return false;
         }
 
-        public void Update(TimeSpan totalTime)
+        public void Update(GameTime gameTime)
         {
         }
     }

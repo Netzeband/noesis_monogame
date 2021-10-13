@@ -1,4 +1,4 @@
-using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace UI.Noesis.Input
@@ -13,7 +13,7 @@ namespace UI.Noesis.Input
         {
         }
 
-        public Keys[] ProcessKeys(Keys[] pressedKeys, TimeSpan totalTime)
+        public Keys[] ProcessKeys(Keys[] pressedKeys, GameTime gameTime)
         {
             return pressedKeys;
         }

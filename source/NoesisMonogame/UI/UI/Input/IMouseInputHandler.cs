@@ -1,4 +1,4 @@
-using System;
+using Microsoft.Xna.Framework;
 
 namespace UI.Input
 {
@@ -34,7 +34,7 @@ namespace UI.Input
         /// <summary>
         /// Updates the input handler calculation.
         /// </summary>
-        /// <param name="totalTime">The total game-time.</param>
-        void Update(TimeSpan totalTime);
+        /// <param name="gameTime">The game-time.</param>
+        void Update(GameTime gameTime);
     }
 }
