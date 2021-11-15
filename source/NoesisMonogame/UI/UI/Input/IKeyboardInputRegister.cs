@@ -46,5 +46,15 @@ namespace UI.Input
         /// <param name="handler">The handler call in this case.</param>
         /// <returns>Returns a modified handler, which checks first if the key was just pressed.</returns>
         HandlerFunction AtKeyDown(HandlerFunction handler);
+        
+        /// <summary>
+        /// A handler modificator, which recalls the handler only after a delay. 
+        /// </summary>
+        /// <param name="handler">The handler call in this case.</param>
+        /// <param name="firstDelay">The delay, which mist be reached, before the handler is called a second time.</param>
+        /// <param name="nextDelay">The delay, which mist be reached, before the handler is called a third or more times.
+        /// If this is not defined, the delay from the first time is used again.</param>
+        /// <returns>Returns a modified handler, which checks first if the key was just pressed.</returns>
+        HandlerFunction WithRepeatDelay(HandlerFunction handler, TimeSpan firstDelay, TimeSpan? nextDelay = null);
     }
 }

@@ -12,6 +12,7 @@ namespace UI.Input
         private readonly Dictionary<T, Dictionary<Keys, IKeyboardInputRegister<T>.HandlerFunction>> _handlers = new();
         private Keys[] _pressedKeys;
         private Keys[] _lastPressedKeys = Array.Empty<Keys>();
+        private Dictionary<Keys, TimeSpan> _keyPressTimes = new();
 
         public void RegisterKey(Keys key, T state, IKeyboardInputRegister<T>.HandlerFunction function)
         {
@@ -53,10 +54,7 @@ namespace UI.Input
         {
             if (TryGetStateFunction(key, state, out var handler))
             {
-                if (handler(key, state, gameTime))
-                {
-                    return _pressedKeys.Contains(key);
-                }
+                return handler(key, state, gameTime);
             }
 
             return false;
@@ -110,5 +108,45 @@ namespace UI.Input
             return (k,s, t) => WaitForKeyDown(k, s, t, handler);
         }
 
+        
+        private bool WaitForRepeatDelay(
+            Keys key, 
+            T state, 
+            GameTime gameTime, 
+            IKeyboardInputRegister<T>.HandlerFunction handler,
+            TimeSpan firstDelay,
+            TimeSpan nextDelay
+            )
+        {
+            if (!_pressedKeys.Contains(key) && _lastPressedKeys.Contains(key))
+            {
+                _keyPressTimes.Remove(key);
+                return false;
+            }
+            else if (_pressedKeys.Contains(key) && !_lastPressedKeys.Contains(key))
+            {
+                _keyPressTimes[key] = gameTime.TotalGameTime + firstDelay;
+                return handler(key, state, gameTime);
+            }
+            else if (_keyPressTimes.TryGetValue(key, out var nextHandleTime))
+            {
+                if (gameTime.TotalGameTime >= nextHandleTime)
+                {
+                    _keyPressTimes[key] = gameTime.TotalGameTime + nextDelay;
+                    return handler(key, state, gameTime);
+                }
+            }
+            return true;
+        }
+
+        
+        public IKeyboardInputRegister<T>.HandlerFunction WithRepeatDelay(
+            IKeyboardInputRegister<T>.HandlerFunction handler, 
+            TimeSpan firstDelay, 
+            TimeSpan? nextDelay = null
+            )
+        {
+            return (k,s, t) => WaitForRepeatDelay(k, s, t, handler, firstDelay, nextDelay ?? firstDelay);
+        }
     }
 }
