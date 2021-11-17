@@ -139,7 +139,6 @@ namespace UI.Input
             return true;
         }
 
-        
         public IKeyboardInputRegister<T>.HandlerFunction WithRepeatDelay(
             IKeyboardInputRegister<T>.HandlerFunction handler, 
             TimeSpan firstDelay, 

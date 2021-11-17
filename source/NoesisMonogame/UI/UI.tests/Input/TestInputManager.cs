@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using NSubstitute;
@@ -10,17 +11,21 @@ namespace UI.Input
     {
         IMouseInputHandler _mouseInputHandler;
         IMouseStateReader _mouseStateReader;
+        IKeyboardInputHandler _keyboardInputHandler;
+        IKeyboardStateReader _keyboardStateReader;
         
         [SetUp]
         public void SetUp()
         {
             _mouseInputHandler = Substitute.For<IMouseInputHandler>();
             _mouseStateReader = Substitute.For<IMouseStateReader>();
+            _keyboardInputHandler = Substitute.For<IKeyboardInputHandler>();
+            _keyboardStateReader = Substitute.For<IKeyboardStateReader>();
         }
         
         private InputManager CreateInstance()
         {
-            return new InputManager(_mouseStateReader, _mouseInputHandler);
+            return new InputManager(_mouseStateReader, _keyboardStateReader, _mouseInputHandler, _keyboardInputHandler);
         }
         
         [Test]
@@ -202,6 +207,21 @@ namespace UI.Input
                 _mouseInputHandler.Update(Arg.Is(gameTime));
             });
         }
-        
+
+        [Test]
+        public void TestProcessingOfKeys()
+        {
+            var manager = CreateInstance();
+
+            var gameTime = new GameTime();
+            var keys = new [] { Keys.Enter, Keys.Escape };
+            
+            _keyboardStateReader.GetState().Returns(keys);
+            
+            manager.Update(gameTime);
+
+            _keyboardInputHandler.Received().ProcessKeys(Arg.Is<Keys[]>(k => keys.SequenceEqual(k)), Arg.Is(gameTime));
+        }
+
     }
 }

@@ -7,15 +7,26 @@ namespace UI.Input
     public class InputManager : IInputManager
     {
         readonly IMouseStateReader _mouseStateReader;
+        readonly IKeyboardStateReader _keyboardStateReader;
         readonly IMouseInputHandler _mouseInputHandler;
+        readonly IKeyboardInputHandler _keyboardInputHandler;
         
-        public InputManager(IMouseStateReader mouseStateReader, IMouseInputHandler mouseInputHandler)
+        public InputManager(
+            IMouseStateReader mouseStateReader, 
+            IKeyboardStateReader keyboardStateReader,
+            IMouseInputHandler mouseInputHandler,
+            IKeyboardInputHandler keyboardInputHandler
+            )
         {
             _mouseStateReader = mouseStateReader;
+            _keyboardStateReader = keyboardStateReader;
             _mouseInputHandler = mouseInputHandler;
+            _keyboardInputHandler = keyboardInputHandler;
             
             Debug.Assert(_mouseStateReader != null);
+            Debug.Assert(_keyboardStateReader != null);
             Debug.Assert(_mouseInputHandler != null);
+            Debug.Assert(_keyboardInputHandler != null);
         }
         
         public void Update(GameTime gameTime)
@@ -38,6 +49,8 @@ namespace UI.Input
                 _mouseInputHandler.ProcessButtonPressed(MouseButtons.Middle);
             }
             _mouseInputHandler.Update(gameTime);
+
+            _keyboardInputHandler.ProcessKeys(_keyboardStateReader.GetState(), gameTime);
         }
     }
 }
