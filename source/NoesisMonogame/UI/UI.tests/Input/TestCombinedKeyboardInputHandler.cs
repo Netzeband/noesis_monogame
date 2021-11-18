@@ -6,39 +6,39 @@ using NUnit.Framework;
 
 namespace UI.Input
 {
-    public class TestKeyboardInputHandlerManager
+    public class TestCombinedKeyboardInputHandler
     {
-        private KeyboardInputHandlerManager CreateInstance()
+        private CombinedKeyboardInputHandler CreateInstance()
         {
-            return new KeyboardInputHandlerManager();
+            return new CombinedKeyboardInputHandler();
         }
 
         [Test]
         public void TestCreate()
         {
-            var manager = CreateInstance();
+            var handler = CreateInstance();
             
-            Assert.IsInstanceOf<KeyboardInputHandlerManager>(manager);
-            Assert.IsInstanceOf<IKeyboardInputHandler>(manager);
+            Assert.IsInstanceOf<CombinedKeyboardInputHandler>(handler);
+            Assert.IsInstanceOf<IKeyboardInputHandler>(handler);
         }
         
         [Test]
         public void TestAdd()
         {
-            var manager = CreateInstance();
+            var handler = CreateInstance();
 
-            manager.Add(InputHandlerPriority.High, Substitute.For<IKeyboardInputHandler>());
-            manager.Add(InputHandlerPriority.High, Substitute.For<IKeyboardInputHandler>());
-            manager.Add(InputHandlerPriority.Normal, Substitute.For<IKeyboardInputHandler>());
-            manager.Add(InputHandlerPriority.Normal, Substitute.For<IKeyboardInputHandler>());
-            manager.Add(InputHandlerPriority.Low, Substitute.For<IKeyboardInputHandler>());
-            manager.Add(InputHandlerPriority.Low, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.High, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.High, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.Normal, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.Normal, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.Low, Substitute.For<IKeyboardInputHandler>());
+            handler.Add(InputHandlerPriority.Low, Substitute.For<IKeyboardInputHandler>());
         }
         
         [Test]
         public void TestProcessKeys()
         {
-            var manager = CreateInstance();
+            var handler = CreateInstance();
 
             var low1 = Substitute.For<IKeyboardInputHandler>();
             var low2 = Substitute.For<IKeyboardInputHandler>();
@@ -47,12 +47,12 @@ namespace UI.Input
             var high1 = Substitute.For<IKeyboardInputHandler>();
             var high2 = Substitute.For<IKeyboardInputHandler>();
             
-            manager.Add(InputHandlerPriority.Low, low1);
-            manager.Add(InputHandlerPriority.Low, low2);
-            manager.Add(InputHandlerPriority.Normal, normal1);
-            manager.Add(InputHandlerPriority.Normal, normal2);
-            manager.Add(InputHandlerPriority.High, high1);
-            manager.Add(InputHandlerPriority.High, high2);
+            handler.Add(InputHandlerPriority.Low, low1);
+            handler.Add(InputHandlerPriority.Low, low2);
+            handler.Add(InputHandlerPriority.Normal, normal1);
+            handler.Add(InputHandlerPriority.Normal, normal2);
+            handler.Add(InputHandlerPriority.High, high1);
+            handler.Add(InputHandlerPriority.High, high2);
 
             var keys = new[]
             {
@@ -74,7 +74,7 @@ namespace UI.Input
 
             var time = new GameTime();
 
-            var returnedKeys = manager.ProcessKeys(keys, time);
+            var returnedKeys = handler.ProcessKeys(keys, time);
 
             high1.Received().ProcessKeys(Arg.Is<Keys[]>(k => k.SequenceEqual(keys)), Arg.Is(time));
             high2.Received().ProcessKeys(Arg.Is<Keys[]>(k => k.SequenceEqual(keysAfterHigh1)), Arg.Is(time));
@@ -89,13 +89,13 @@ namespace UI.Input
         [Test]
         public void TestRemoveWhenSamePriority()
         {
-            var manager = CreateInstance();
+            var handler = CreateInstance();
 
             var handler1 = Substitute.For<IKeyboardInputHandler>();
             var handler2 = Substitute.For<IKeyboardInputHandler>();
             
-            manager.Add(InputHandlerPriority.Normal, handler1);
-            manager.Add(InputHandlerPriority.Normal, handler2);
+            handler.Add(InputHandlerPriority.Normal, handler1);
+            handler.Add(InputHandlerPriority.Normal, handler2);
 
             var keys = new[]
             {
@@ -109,23 +109,23 @@ namespace UI.Input
 
             var time = new GameTime();
             
-            Assert.AreEqual(keysAfterHandler2, manager.ProcessKeys(keys, time));
+            Assert.AreEqual(keysAfterHandler2, handler.ProcessKeys(keys, time));
 
-            manager.Remove(handler2);
+            handler.Remove(handler2);
             
-            Assert.AreEqual(keysAfterHandler1, manager.ProcessKeys(keys, time));
+            Assert.AreEqual(keysAfterHandler1, handler.ProcessKeys(keys, time));
         }
 
         [Test]
         public void TestRemoveWhenDifferentPriority()
         {
-            var manager = CreateInstance();
+            var handler = CreateInstance();
 
             var handler1 = Substitute.For<IKeyboardInputHandler>();
             var handler2 = Substitute.For<IKeyboardInputHandler>();
             
-            manager.Add(InputHandlerPriority.High, handler1);
-            manager.Add(InputHandlerPriority.Normal, handler2);
+            handler.Add(InputHandlerPriority.High, handler1);
+            handler.Add(InputHandlerPriority.Normal, handler2);
 
             var keys = new[]
             {
@@ -139,11 +139,11 @@ namespace UI.Input
 
             var time = new GameTime();
             
-            Assert.AreEqual(keysAfterHandler2, manager.ProcessKeys(keys, time));
+            Assert.AreEqual(keysAfterHandler2, handler.ProcessKeys(keys, time));
 
-            manager.Remove(handler2);
+            handler.Remove(handler2);
             
-            Assert.AreEqual(keysAfterHandler1, manager.ProcessKeys(keys, time));
+            Assert.AreEqual(keysAfterHandler1, handler.ProcessKeys(keys, time));
         }
 
     }

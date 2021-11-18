@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace UI.Input
 {
-    public class KeyboardInputHandlerManager : IKeyboardInputHandler
+    public class CombinedKeyboardInputHandler : IKeyboardInputHandler
     {
         readonly Dictionary<InputHandlerPriority, List<IKeyboardInputHandler>> _handlers = new();
 
